@@ -4,3 +4,5 @@ docs
 .idea
 .vscode
 .DS_Store
+fizzbuzz.go
+fizzbuzz.js

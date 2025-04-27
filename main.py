@@ -20,7 +20,7 @@ MODEL = "deepseek-chat"
 class Agent:
     def __init__(self, client_instance, tool_definitions: list[ToolDefinition] = []):
         self.client = client_instance
-        self.tool_definitions = {tool.name: tool for tool in tool_definitions}  # Convert to dict for faster lookup
+        self.tool_definitions = {tool.name: tool for tool in tool_definitions}  
 
     def execute_tool_call(self, tool_call):
         try:
@@ -56,17 +56,9 @@ class Agent:
                 user_input = Console.user("")
                 if not user_input:
                     continue
-
                 conversation.append({"role": "user", "content": user_input})
-                
                 while True:
                     assistant_message_obj = self.run_inference(conversation)
-                    
-                    if not assistant_message_obj:
-                        if conversation and conversation[-1]["role"] == "user":
-                            conversation.pop()
-                        break
-                    
                     assistant_message = assistant_message_obj.model_dump(exclude_unset=True)
                     conversation.append(assistant_message)
                     
@@ -74,7 +66,6 @@ class Agent:
                         Console.assistant(MODEL, assistant_message_obj.content)
                     
                     if assistant_message_obj.tool_calls:
-                        tool_call_responses = []
                         for tool_call in assistant_message_obj.tool_calls:
                             Console.tool_call(tool_call.function.name, tool_call.function.arguments)
                             tool_result = self.execute_tool_call(tool_call)                            
@@ -85,16 +76,11 @@ class Agent:
                                 "content": str(tool_result)
                             }
                             conversation.append(tool_response)
-                            tool_call_responses.append(tool_response)
                         continue                    
                     break
-
             except KeyboardInterrupt:
                 Console.info("\nExiting...")
                 break
-                
-        Console.info("Agent run() finished.")
-
 
 if __name__ == "__main__":
     agent_instance = Agent(client_instance=client, tool_definitions=[read_file_tool, list_files_tool, edit_file_tool])
